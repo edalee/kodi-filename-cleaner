@@ -139,5 +139,5 @@ cython_debug/
 
 
 # IDE specifics
-./idea
+.idea/
 
