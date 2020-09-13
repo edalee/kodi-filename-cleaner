@@ -1,254 +1,82 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 import argparse
 import os
 import re
 import shutil
-from typing import List
+import string
+from typing import List, Tuple
+
+from file_tools import extract_year, remove_additional_spacing, clean_name
+from tv_and_series import get_series_episode_info
+from user_input import choose_year, get_year_input
+
+FILE_TYPES = ['.m4v', '.mpeg', '.mpg', '.mp4', '.mpe', '.avi', '.mkv', '.mxf', '.wmv', '.ogg', '.divx', '.srt', '.sub']
+EXT_TO_KEEP = ['.jpg', '.png', '.vob', '.ifo', '.bup', '.sfv', '.rar', '.subs', '.idx', '.iso']
+BLACK_LIST = [ 'VIDEO_TS']
 
 
-class UnsplittableError(Exception):
-    pass
-
-
-def remove_additional_spacing(name):
-    return re.sub(' +', ' ', name)
-
-
-def extract_year(title):
-    avoid_list = ['480', '720', '1080']
-    for i in avoid_list:
-        new_title = title.replace(i, '')
-    match = re.match(r'.*([1-3][0-9]{3})', new_title)
-    if match is not None:
-        # Then it found a match!
-        return match.group(1)
-
-
-def clean_name(name: str, year: int) -> str:
-    torrent_names = [
-        'anoXmous',
-        'Afg',
-        '-AMIABLE',
-        'BOGiEman',
-        'bm11',
-        '-cg',
-        '-CG',
-        'cg',
-        'cc',
-        'C4Tv',
-        'cinefile',
-        'CM8',
-        'Criterion',
-        'Ctbx',
-        'CriterionBluRay',
-        'ehhhh',
-        'ETRG',
-        "Ettv",
-        'EVO',
-        'ExtraTorrent',
-        'Gspot',
-        'FH-loyal-ity',
-        'Hammer71',
-        'Hevc',
-        'Hevc Psa',
-        '-Hive',
-        'JYK',
-        'Juggs',
-        'mfcorrea',
-        '-muxed',
-        'mrn',
-        'nesmeured',
-        'nf',
-        '(None)',
-        'Ozlem',
-        'organic()',
-        "PSYPHER",
-        'Remastered',
-        'RARBG',
-        'Repack',
-        'SiRiUs sHaRe',
-        'Schizo',
-        'Sujaidr',
-        'Sticky83'
-        'tahi',
-        'TiTAN',
-        'Uk Organic()',
-        '-UNRATED',
-        '-usury',
-        "WAZZ",
-        'WRD',
-        "Vip3R",
-        'X0R',
-        'YIFY',
-        'Y83',
-        "2hd",
-    ]
-    codings = [
-        '2ch',
-        '4ch',
-        '6ch',
-        '8ch',
-        '480p',
-        '720p',
-        '1080p',
-        '480',
-        '570',
-        '720',
-        '1080',
-        'AAC',
-        'AC3',
-        'AVC',
-        'BluRay',
-        'Blueray',
-        'bdrip',
-        'BRRip',
-        'DC',
-        'UNRATED',
-        'DD5.1',
-        'DVDScr',
-        'DVDRip',
-        'Hdtv',
-        'H264',
-        'HDB',
-        'HDRip',
-        'HQ',
-        'Mb',
-        'MP3',
-        'Mp3',
-        'MVGroup.org',
-        ' P ',
-        'Tvrip',
-        'WEB-DL',
-        "Webrip",
-        'x264',
-        'X265',
-        'XVID',
-    ]
-    name = name.replace(str(year), '')
-    name = name.replace('()', '')
-    name = name.replace('[]', '')
-    name = name.replace('( )', '')
-    name = name.replace('[', '(').replace(']', ')')
-    for i in codings:
-        name = name.lower().replace(i.lower(), '')
-    for i in torrent_names:
-        name = name.lower().replace(i.lower(), '')
-    name = name.replace('.', ' ').replace('_', ' ').replace('–', ' ').replace('-', ' ')
-    name = remove_additional_spacing(name).strip().title()
-    return name
-
-
-def split_name(name: str, character: str) -> List:
-    if character in name:
-        return name.split(character)
-    else:
-        raise UnsplittableError
-
-
-def check_int(year):
-    return isinstance(year, int)
-
-
-def find_series_and_episode(findings: List) -> str:
-    check = 's'
-    check_two = 'e'
-    result_1 = [idx for idx in findings if idx[0].lower() == check.lower()]
-    result_2 = [idx for idx in findings if idx[0].lower() == check_two.lower()]
-    if len(result_1[0]) == 3 and len(result_2[0]) == 3:
-        return "".join(findings).lower()
-    elif len(result_1[0]) == 2 and len(result_2[0]) == 2:
-        return result_1[0].replace('s', 's0')+result_2[0].replace('e', 'e0')
-    else:
-        return
-
-
-def find_series(findings: List) -> str:
-    check = 's'
-    result_1 = [idx for idx in findings if idx[0].lower() == check.lower()]
-    if len(result_1[0]) == 3:
-        return "".join(findings).lower()
-    elif len(result_1[0]) == 2:
-        return result_1[0].replace('s', 's0')
-    else:
-        return
-
-
-def get_series_info(cleaned_filename):
-    ses = re.findall("[a-zA-Z]\d{2}", cleaned_filename.lower())
-    if not ses:
-        ses = re.findall("[a-zA-Z]\d{1}", cleaned_filename.lower())
-    series = find_series(ses)
-    if not series:
-        series = get_show_input(cleaned_filename)
-    removed_episode = cleaned_filename.lower().replace(series, '')
-    title_cased_name = remove_additional_spacing(removed_episode.title())
-    return series.upper(), title_cased_name
-
-
-def get_episode_info(cleaned_filename):
-    ses = re.findall("[a-zA-Z]\d{2}", cleaned_filename.lower())
-    if not ses:
-        ses = re.findall("[a-zA-Z]\d{1}", cleaned_filename.lower())
-    series_episode = find_series_and_episode(ses)
-    if not series_episode:
-        series_episode = get_show_input(cleaned_filename)
-    removed_episode = cleaned_filename.lower().replace(series_episode, '')
-    title_cased_name = remove_additional_spacing(removed_episode.title())
-    return series_episode.upper(), title_cased_name
-
-
-def make_new_filename(old_filename: str, ext: str, _year: int, episodes: bool = False) -> str:
+def make_new_filename(old_filename: str, ext: str, parent_year: int = None, episodes: bool = False) -> str:
     year = extract_year(old_filename)
-    if not year:
-        year = _year
+
+    if parent_year:
+        if not year and parent_year > 1900:
+            year = parent_year if parent_year else None
+        if parent_year != year:
+            year = choose_year(name=old_filename, file_year=year, folder_year=parent_year)
+
+    # clean title before reassigning year
     cleaned_filename = clean_name(old_filename, year)
+    cleaned_filename = string.capwords(cleaned_filename, ' ')
 
     if episodes:
-        show_number, episode_less_filename = get_episode_info(cleaned_filename)
-        file_name = f"{episode_less_filename.title()} ({year}) {show_number}{ext}"
+        show_number, episode_less_filename = get_series_episode_info(cleaned_filename, year, False)
+        episode_less_filename = string.capwords(episode_less_filename, ' ')
+
+        if not show_number:
+            file_name = f"{episode_less_filename} ({year}){ext}"
+        elif not year:
+            file_name = f"{episode_less_filename} {show_number}{ext}"
+        elif not year and not show_number:
+            file_name = f"{episode_less_filename}{ext}"
+        else:
+            file_name = f"{episode_less_filename} ({year}) {show_number}{ext}"
         return remove_additional_spacing(file_name).strip()
     else:
-        file_name = f"{cleaned_filename.title()} ({year}){ext}"
+        if not year:
+            file_name = f"{cleaned_filename}{ext}"
+        else:
+            file_name = f"{cleaned_filename} ({year}){ext}"
         return remove_additional_spacing(file_name).strip()
 
 
-def get_year_input(name) -> int:
-    while True:
-        try:
-            year = int(input(f'Add season year: "{name}"?  '))
-            return year
-        except ValueError:
-            print("The input was not a valid integer")
-
-
-def get_show_input(name) -> str:
-    while True:
-        try:
-            episode = str(input(f'Add season and episode (like this S01E02: "{name}"?  '))
-            if episode.upper().startswith('S') and episode.upper()[3] == 'E':
-                return episode
-        except ValueError:
-            print("The input was not a valid integer")
-
-
-def make_new_dir_name(old_name, episodes=False) -> tuple:
+def make_new_dir_name(old_name, episodes=False) -> Tuple[str, int]:
     print(f"`{old_name}`")
     year = extract_year(old_name)
     cleaned_name = clean_name(old_name, year)
     if not year:
         year = get_year_input(cleaned_name)
     if episodes:
-        series, episode_less_dirname = get_series_info(cleaned_name)
-        return remove_additional_spacing(f"{episode_less_dirname} ({year}) {series}"), year
+        series, episode_less_dirname = get_series_episode_info(cleaned_name, year, series_search=True)
+        if series:
+            return remove_additional_spacing(f"{episode_less_dirname} ({year}) {series}"), year
+        else:
+            if year:
+                return remove_additional_spacing(f"{episode_less_dirname} ({year})"), year
+            else:
+                return remove_additional_spacing(f"{episode_less_dirname}"), 0
     else:
-        return remove_additional_spacing(f"{cleaned_name} ({year})"), year
+        if year:
+            return remove_additional_spacing(f"{cleaned_name} ({year})"), int(year)
+        else:
+            return remove_additional_spacing(f"{cleaned_name}"), 0
 
 
-def rename_file(source, dest) -> bool:
+def rename_file(source, destination) -> bool:
     try:
-        os.rename(source, dest)
-        print(f"Source path renamed to destination path successfully: {dest}")
+        os.rename(source, destination)
+        print(f"Source path renamed to destination path successfully: {destination}")
         return True
     except IsADirectoryError:
         print("Source is a file but destination is a directory.")
@@ -264,7 +92,7 @@ def rename_file(source, dest) -> bool:
         return False
 
 
-def back_up_rename(from_dir, to_dir):
+def back_up_rename(from_dir, to_dir) -> bool:
     try:
         shutil.move(from_dir, to_dir)
         print(f"Source path renamed to destination path successfully: {to_dir}")
@@ -283,15 +111,13 @@ def back_up_rename(from_dir, to_dir):
         return False
 
 
-def make_subtitle_filename(new_filename, file_extension):
+def make_subtitle_filename(new_filename: str, file_extension: str) -> str:
     countries = [
         'english', 'eng',
         'swedish', 'swe', 'sv',
-        'danish', 'dan',
+        'danish', 'dan', 'dn',
         'french', 'fra', 'fre',
-        'spanish', 'spa', 'esp',
-        'dutch', 'dut',
-        'italian', 'ita',
+        'norwegian', 'nor', 'no',
     ]
     filename_txt, file_extension = os.path.splitext(new_filename.lower())
     for i in countries:
@@ -299,16 +125,14 @@ def make_subtitle_filename(new_filename, file_extension):
         cleaned_white_space = remove_additional_spacing(empty_lang)
         add_space_on_year = cleaned_white_space.replace('(', ' (')
         name = remove_additional_spacing(add_space_on_year)
+        name = string.capwords(name, ' ')
         if i in new_filename.lower():
-            return f"{name.title()} – {i}{file_extension}"
+            return f"{name} – {i}{file_extension}"
     else:
-        return f"{name.title()} – eng{file_extension}"
+        return f"{name} – ? {file_extension}"
 
 
-def rename_dir_files(path: str, blacklist: List, year: int, episodes: bool) -> int:
-    file_types = ['.m4v', '.mpeg', '.mpg', '.mp4', '.mpe', '.avi', '.mkv', '.mxf', '.wmv', '.ogg', '.divx', '.nfo',
-                  '.srt', '.sub', ]
-    ext_to_keep = ['.jpg', '.png', '.vob', '.ifo', '.bup', '.sfv', '.rar', '.subs', '.idx']
+def rename_files(path: str, year: int, episodes: bool) -> int:
     print(f"Path: {path}")
     count: int = 0
     print(f"Path for files: {path}")
@@ -316,14 +140,7 @@ def rename_dir_files(path: str, blacklist: List, year: int, episodes: bool) -> i
         print(f"Subdirectories: {len(sub_dirs)}")
 
         for filename in file_names:
-            renamed_state = False
-            print(f"File location: {path}")
-            print(f"Evaluating renaming of file: {filename}")
-
-            if filename[0] == '.':
-                continue
-
-            if filename in blacklist:
+            if filename[0] == '.' or filename in BLACK_LIST:
                 continue
 
             if 'sample' in filename.lower():
@@ -347,14 +164,18 @@ def rename_dir_files(path: str, blacklist: List, year: int, episodes: bool) -> i
                     print("didn't get that")
                     pass
 
+            renamed_state = False
+            print(f"File location: {path}")
+            print(f"Evaluating renaming of file: {filename}")
+
             filename_txt, file_extension = os.path.splitext(filename)
 
             is_rar_sequence = re.search(r'(.*?)((part\[\d+\])?\.r[0-9]+)', file_extension)
             if is_rar_sequence:
                 continue
 
-            if file_extension.lower() in file_types:
-                new_filename = make_new_filename(filename_txt, file_extension, year, episodes)
+            if file_extension.lower() in FILE_TYPES:
+                new_filename = make_new_filename(filename_txt, file_extension, int(year), episodes)
                 if file_extension == '.srt' or file_extension == '.sub':
                     new_filename = make_subtitle_filename(new_filename, file_extension)
                 if new_filename != filename:
@@ -373,7 +194,7 @@ def rename_dir_files(path: str, blacklist: List, year: int, episodes: bool) -> i
                     print(e)
                 continue
 
-            if file_extension.lower() not in file_types and file_extension.lower() not in ext_to_keep:
+            if file_extension.lower() not in FILE_TYPES and file_extension.lower() not in EXT_TO_KEEP:
                 if file_extension == '.txt' or file_extension == '.rtf':
                     try:
                         os.remove(f"{root}/{filename}")
@@ -396,13 +217,7 @@ def rename_dir_files(path: str, blacklist: List, year: int, episodes: bool) -> i
 
 
 def rename_dirs(path, episodes=False) -> None:
-    black_list = [
-        'Godzilla Complete Boxset (1954)–(2004)',
-        'James Stewart Pack',
-        'VIDEO_TS',
-        'Zatoichi Collection (1962-1989)',
-    ]
-    count:int = 0
+    count: int = 0
     files_renamed: int = 0
     dirs_renamed: int = 0
     path = path if path.endswith('/') else f'{path}/'
@@ -413,7 +228,7 @@ def rename_dirs(path, episodes=False) -> None:
         for dir_name in dirs:
             print(f"Evaluating renaming of directory: {dir_name}")
             renamed_state = False
-            if dir_name in black_list:
+            if dir_name in BLACK_LIST:
                 print(f"Blacklisted Dir {dir_name}")
                 continue
 
@@ -438,14 +253,17 @@ def rename_dirs(path, episodes=False) -> None:
 
             print(f"Renamed dir: {renamed_state}")
             print(f"Path for files renaming: {path}")
-            renamed_file_count = rename_dir_files(path, black_list, year, episodes)
+            renamed_file_count = rename_files(path, black_list, year, episodes)
             files_renamed += renamed_file_count
 
             count += 1
         else:
             folder = root.split('/')[-2]
+            print(f"Evaluating Path for renaming: {folder}")
             year = extract_year(folder)
-            renamed_file_count = rename_dir_files(root, black_list, year, episodes)
+            if not year:
+                year = 0
+            renamed_file_count = rename_files(root, black_list, int(year), episodes)
             files_renamed += renamed_file_count
             print(f"Path for files renaming: {root}")
 
@@ -454,7 +272,7 @@ def rename_dirs(path, episodes=False) -> None:
     print(f"Total renamed files count: {files_renamed}")
 
 
-def parse_args():
+def parse_args(argv=None) -> Tuple[str, str]:
     parser = argparse.ArgumentParser()
     requiredNamed = parser.add_argument_group("required named arguments")
     requiredNamed.add_argument(
@@ -465,17 +283,17 @@ def parse_args():
         required=True,
     )
     parser.add_argument("-e", "--episodes", help="Supply episode to get the season and episode tag in the wrong place")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     return args.filepath, args.epidsodes
 
 
-def main():
-    file_path, episodes = parse_args()
+def main(path: str, is_tv: bool = False) -> None:
+    argv: List[str, bool] = [path, is_tv]
+    file_path, episodes = parse_args(argv)
     rename_dirs(file_path, episodes)
 
 
 if __name__ == "__main__":
-    # main()
-    # my_path = '/Volumes/archived/TV/'
-    my_path = '/Volumes/Tv/'
-    rename_dirs(my_path, True)
+    my_path: str = "/Volumes/complete/Stage/"
+    is_tv_show: bool  = True
+    main(my_path, is_tv_show)
