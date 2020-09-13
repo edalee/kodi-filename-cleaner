@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import argparse
 import os
 
@@ -25,6 +28,7 @@ def create_new_folder(path):
     ext = os.path.splitext(path)[1]
 
     new_name = file_name.replace(ext, '')
+    new_name = new_name.replace("\'", "'")
     new_path = os.path.join(drive, new_name)
     try:
         os.mkdir(new_path)
