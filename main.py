@@ -18,16 +18,17 @@ BLACK_LIST = [ 'VIDEO_TS']
 
 
 def make_new_filename(old_filename: str, ext: str, parent_year: int = None, episodes: bool = False) -> str:
+    original_year = None
     year = extract_year(old_filename)
 
     if parent_year:
         if not year and parent_year > 1900:
             year = parent_year if parent_year else None
         if parent_year != year:
-            year = choose_year(name=old_filename, file_year=year, folder_year=parent_year)
+            year, original_year = choose_year(name=old_filename, file_year=year, folder_year=parent_year)
 
     # clean title before reassigning year
-    cleaned_filename = clean_name(old_filename, year)
+    cleaned_filename = clean_name(old_filename, year, original_year)
     cleaned_filename = string.capwords(cleaned_filename, ' ')
 
     if episodes:
@@ -253,7 +254,7 @@ def rename_dirs(path, episodes=False) -> None:
 
             print(f"Renamed dir: {renamed_state}")
             print(f"Path for files renaming: {path}")
-            renamed_file_count = rename_files(path, black_list, year, episodes)
+            renamed_file_count = rename_files(path, BLACK_LIST, year, episodes)
             files_renamed += renamed_file_count
 
             count += 1
@@ -263,7 +264,7 @@ def rename_dirs(path, episodes=False) -> None:
             year = extract_year(folder)
             if not year:
                 year = 0
-            renamed_file_count = rename_files(root, black_list, int(year), episodes)
+            renamed_file_count = rename_files(root, BLACK_LIST, int(year), episodes)
             files_renamed += renamed_file_count
             print(f"Path for files renaming: {root}")
 

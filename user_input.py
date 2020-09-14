@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from typing import Optional
+from typing import Optional, Tuple
 
 
 def get_show_input(name: str) -> Optional[str]:
@@ -29,18 +29,18 @@ def get_year_input(name: str) -> Optional[int]:
             print("The input was not a valid integer")
 
 
-def choose_year(name: str, file_year: str, folder_year: str) -> Optional[int]:
+def choose_year(name: str, file_year: str, folder_year: str) -> Optional[Tuple[int, int]]:
     while True:
         try:
             choice = int(input(f'Choose year 1:"{file_year}", 2:"{folder_year}" OR 3: add my own : '))
             if choice == 1:
-                year = file_year
+                years = (file_year, folder_year)
             elif choice == 2:
-                year = folder_year
+                years = (folder_year, file_year)
             elif choice == 3:
-                year = get_year_input(name)
+                years = (get_year_input(name), file_year)
             else:
                 raise ValueError
-            return int(year)
+            return years[0], years[1]
         except ValueError:
             print("The input was not a valid integer")
