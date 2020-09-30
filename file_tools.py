@@ -51,8 +51,8 @@ def clean_punctuation(name: str) -> str:
     return name.replace('.', ' ').replace('_', ' ').replace('–', ' ').replace('-', ' ')
 
 
-def clean_name(name: str, year: int, parent_year: int = None) -> str:
-    name = name.replace(str(year), '').replace(str(parent_year), '')
+def clean_name(name: str, year: int) -> str:
+    name = name.replace(str(year), '')
     with open(codings) as file:
         for line in file:
             line = line.replace('\n', '')
