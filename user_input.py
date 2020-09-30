@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from typing import Optional, Tuple
+from typing import Optional
 
 
 def get_show_input(name: str) -> Optional[str]:
@@ -18,7 +18,9 @@ def get_show_input(name: str) -> Optional[str]:
 def get_year_input(name: str) -> Optional[int]:
     while True:
         try:
-            year = int(input(f'Add series year "{name}" (0 to skip) : '))
+            year = int(input(f'Add film/series year "{name}" (0 to skip) : '))
+            if year <= 1880:
+                pass
             if year > 1880:
                 return year
             if year == 0:
@@ -29,18 +31,20 @@ def get_year_input(name: str) -> Optional[int]:
             print("The input was not a valid integer")
 
 
-def choose_year(name: str, file_year: str, folder_year: str) -> Optional[Tuple[int, int]]:
+def choose_year(name: str, file_year: str, folder_year: str) -> int:
     while True:
         try:
-            choice = int(input(f'Choose year 1:"{file_year}", 2:"{folder_year}" OR 3: add my own : '))
+            choice = int(
+                input(f'Choose year: File (1) = "{file_year}", Folder (2) = "{folder_year}" OR (3) add my own : ')
+            )
             if choice == 1:
-                years = (file_year, folder_year)
+                year = file_year
             elif choice == 2:
-                years = (folder_year, file_year)
+                year = folder_year
             elif choice == 3:
-                years = (get_year_input(name), file_year)
+                year = (get_year_input(name))
             else:
                 raise ValueError
-            return years[0], years[1]
+            return year
         except ValueError:
             print("The input was not a valid integer")
