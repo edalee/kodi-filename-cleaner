@@ -31,7 +31,7 @@ def get_year_input(name: str) -> Optional[int]:
             print("The input was not a valid integer")
 
 
-def choose_year(name: str, file_year: str, folder_year: str) -> int:
+def choose_year(name: str, file_year: Optional[int], folder_year: str) -> int:
     while True:
         try:
             choice = int(
@@ -48,3 +48,17 @@ def choose_year(name: str, file_year: str, folder_year: str) -> int:
             return year
         except ValueError:
             print("The input was not a valid integer")
+
+
+def check_delete_file(folder: str, filename: str) -> bool:
+    yes_answers = ['yes', 'y', 'yeah', 'yep']
+    no_answers = ['no', 'n', 'na', 'non', 'nope']
+    while True:
+        response = str(input(f'Delete this file (y or n): "{folder}/{filename}"?  ')).strip()
+        if response.lower() in yes_answers:
+            return True
+        elif response.lower() in no_answers:
+            return False
+        else:
+            print("sorry didn't get that")
+
