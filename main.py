@@ -10,73 +10,7 @@ from typing import List, Tuple, Optional
 
 from file_tools import extract_year, remove_additional_spacing, clean_name
 from tv_and_series import get_series_episode_info
-from user_input import choose_year, get_year_input
 
-FILE_TYPES = ['.m4v', '.mpeg', '.mpg', '.mp4', '.mpe', '.avi', '.mkv', '.mxf', '.wmv', '.ogg', '.divx', '.srt', '.sub']
-EXT_TO_KEEP = ['.jpg', '.png', '.vob', '.ifo', '.bup', '.sfv', '.rar', '.subs', '.idx', '.iso']
-BLACK_LIST = ['VIDEO_TS']
-
-
-class FileMaster:
-    def __init__(self, original_name: str) -> None:
-        self.original_name = original_name
-        self.cleaned_name = self.parse_file_name(original_name)
-
-    is_removable: bool = False
-    is_updated: bool = False
-    is_filename: bool = False
-    extension: str = ''
-    file_year: Optional[int] = None
-    parent_dir = None
-
-    def parse_file_name(self, name: str) -> str:
-        if self.is_filename:
-            filename_txt, self.extension = os.path.splitext(name)
-        else:
-            filename_txt = name
-
-        self.file_year = extract_year(filename_txt)
-        set_year = self.set_file_year_for_string()
-        cleaned_filename = clean_name(filename_txt, self.file_year)
-        titlecase_filename = string.capwords(cleaned_filename, ' ')
-        titlecase_filename = titlecase_filename.replace("'S", "'s")
-
-        file_name = f"{titlecase_filename} {set_year or ''}{self.extension or ''}"
-
-        return remove_additional_spacing(file_name).strip()
-
-    def set_file_year_for_string(self) -> str:
-        # Write test for this
-        if self.parent_dir and self.parent_dir.file_year:
-            if not self.file_year:
-                return f"({self.parent_dir.file_year})"
-            elif self.parent_dir.file_year != self.file_year:
-                chosen_year = choose_year(
-                    name=self.original_name,
-                    file_year=self.file_year,
-                    folder_year=self.parent_dir.file_year
-                )
-                return f"({chosen_year})"
-        else:
-            if self.file_year:
-                return f"({self.file_year})"
-            else:
-                return f"({get_year_input(self.original_name)})"
-
-    def set_is_filename(self):
-        self.is_filename = True
-
-
-class Directory(FileMaster):
-    def __init__(self, original_name: str):
-        super().__init__(original_name)
-
-
-class Filename(FileMaster):
-    def __init__(self, original_name: str, parent_dir: Directory) -> None:
-        self.parent_dir = parent_dir
-        self.set_is_filename()
-        super().__init__(original_name)
 
 
 def make_new_filename(old_filename: str, ext: str, parent_year: int = None, episodes: bool = False) -> str:

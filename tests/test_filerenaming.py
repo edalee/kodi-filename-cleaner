@@ -1,6 +1,6 @@
 from unittest import TestCase, mock
 
-from main import make_new_filename, Directory, Filename
+from file_tools import Directory, Filename
 
 
 class TestEndpoints(TestCase):
