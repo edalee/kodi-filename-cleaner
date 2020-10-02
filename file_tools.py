@@ -9,9 +9,11 @@ from typing import List, Optional, Union
 
 from user_input import choose_year, get_year_input, check_delete_file
 
-FILE_TYPES = ['.m4v', '.mpeg', '.mpg', '.mp4', '.mpe', '.avi', '.mkv', '.mxf', '.wmv', '.ogg', '.divx', '.srt', '.sub']
+FILE_TYPES = ['.m4v', '.mpeg', '.mpg', '.mp4', '.mpe', '.avi', '.mkv', '.mxf', '.wmv', '.ogg', '.divx', '.srt', '.sub',
+              ".ssa", ".ass", ".usf", ".ssf"]
 EXT_TO_KEEP = ['.jpg', '.png', '.vob', '.ifo', '.bup', '.sfv', '.rar', '.subs', '.idx', '.iso']
 BLACK_LIST = ['VIDEO_TS']
+SUBTITLE_EXTENSIONS = ['.sub', '.srt', ".ssa", ".ass", ".usf", ".ssf"]
 
 
 def get_project_root() -> Union[str, bytes, os.PathLike]:
@@ -134,6 +136,13 @@ class FileMaster:
 class Directory(FileMaster):
     def __init__(self, original_name: str) -> None:
         super().__init__(original_name)
+        self.should_rename = self.can_rename()
+
+    def can_rename(self) -> bool:
+        if self.original_name in BLACK_LIST:
+            return False
+        else:
+            return True
 
 
 class Filename(FileMaster):
@@ -141,10 +150,13 @@ class Filename(FileMaster):
         self.parent_dir = parent_dir
         self.set_is_filename()
         super().__init__(original_name)
-        should_rename = self.can_rename()
-        is_junk = self.can_remove()
+        self.should_rename = self.can_rename()
+        self.is_junk = self.can_remove()
 
     def can_rename(self) -> bool:
+        if self.original_name in BLACK_LIST:
+            return False
+
         if self.extension:
             is_rar_sequence = re.search(r'(.*?)((part\[\d+\])?\.r[0-9]+)', self.extension)
             if is_rar_sequence:
@@ -156,7 +168,13 @@ class Filename(FileMaster):
         ext = self.extension.lower()
         filename = self.original_name
 
+        if self.original_name[0] == '.':
+            return True
+
         if ext.lower() == 'jpg' and filename == 'WWW.YIFY - TORRENTS.COM' or 'WWW.YTS.RE':
+            return True
+
+        if self.original_name.lower() == 'sample.mp4':
             return True
 
         if ext not in FILE_TYPES and ext not in EXT_TO_KEEP:
@@ -164,3 +182,13 @@ class Filename(FileMaster):
                 return True
             else:
                 return check_delete_file(self.parent_dir.original_name, self.original_name)
+
+    # def clean_subtitle(self) -> str:
+    #     ext = self.extension.lower()
+    #     filename = self.cleaned_name
+    #     if ext in SUBTITLE_EXTENSIONS:
+    #         filename_txt, self.extension = os.path.splitext(filename)
+    #
+    #         self.subtitle_file = f"{titlecase_filename} {set_year or ''} – {self.extension or ''}"
+
+
