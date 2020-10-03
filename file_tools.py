@@ -1,29 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import json
 import os
 import re
 import string
 from os import PathLike
-from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
+from constants import CODINGS, TORRENT_DATA, SUBTITLE_EXTENSIONS, BLACK_LIST, FILE_TYPES, EXT_TO_KEEP, LANGUAGES_JSON
 from user_input import choose_year, get_year_input, check_delete_file
-
-FILE_TYPES = ['.m4v', '.mpeg', '.mpg', '.mp4', '.mpe', '.avi', '.mkv', '.mxf', '.wmv', '.ogg', '.divx', '.srt', '.sub',
-              ".ssa", ".ass", ".usf", ".ssf"]
-EXT_TO_KEEP = ['.jpg', '.png', '.vob', '.ifo', '.bup', '.sfv', '.rar', '.subs', '.idx', '.iso']
-BLACK_LIST = ['VIDEO_TS']
-SUBTITLE_EXTENSIONS = ['.sub', '.srt', ".ssa", ".ass", ".usf", ".ssf"]
-
-
-def get_project_root() -> Union[str, bytes, os.PathLike]:
-    return Path(__file__).parent
-
-
-root: Union[str, bytes, PathLike] = get_project_root()
-
-torrent_data = os.path.join(root, "names_to_clean.txt")
-codings = os.path.join(root, "audio_video_information.txt")
 
 
 class UnsplittableError(Exception):
@@ -52,6 +37,19 @@ def check_int(year) -> bool:
     return isinstance(year, int)
 
 
+def get_languages(languages_json: Union[str, bytes, PathLike]) -> List[Dict]:
+    with open(languages_json) as f:
+        return json.load(f)
+
+
+def check_for_language(name: str) -> str:
+    languages = get_languages(LANGUAGES_JSON)
+    for language in languages:
+        for identifier in language.values():
+            if (' ' + identifier + ' ') in (' ' + name.lower() + ' '):
+                return identifier
+
+
 def clean_punctuation(name: str) -> str:
     characters = ['(', ')', '()', '( )', '[]']
     for character in characters:
@@ -62,11 +60,11 @@ def clean_punctuation(name: str) -> str:
 
 def clean_name(name: str, year: int) -> str:
     name = name.replace(str(year), '')
-    with open(codings) as file:
+    with open(CODINGS) as file:
         for line in file:
             line = line.replace('\n', '')
             name = name.lower().replace(line.lower(), '')
-    with open(torrent_data) as file:
+    with open(TORRENT_DATA) as file:
         for line in file:
             line = line.replace('\n', '')
             name = name.lower().replace(line.lower(), '')
@@ -81,6 +79,20 @@ def delete_file(path: Union[str, bytes, os.PathLike]) -> None:
         os.remove(path)
     except Exception as e:
         print(e)
+
+
+def clean_subtitle(filename: str) -> Optional[str]:
+    filename_txt, extension = os.path.splitext(filename)
+
+    if extension.lower() in SUBTITLE_EXTENSIONS:
+        language_identifier = check_for_language(filename_txt)
+        if language_identifier:
+            filename_txt = filename_txt.lower().replace(language_identifier, '')
+            filename_txt = remove_additional_spacing(filename_txt).strip()
+            filename_txt = string.capwords(filename_txt, ' ')
+        return f"{filename_txt} – {language_identifier or ''}{extension or ''}"
+    else:
+        None
 
 
 class FileMaster:
@@ -123,6 +135,8 @@ class FileMaster:
                     folder_year=self.parent_dir.file_year
                 )
                 return f"({chosen_year})"
+            else:
+                return f"({self.file_year})"
         else:
             if self.file_year:
                 return f"({self.file_year})"
@@ -150,8 +164,9 @@ class Filename(FileMaster):
         self.parent_dir = parent_dir
         self.set_is_filename()
         super().__init__(original_name)
-        self.should_rename = self.can_rename()
-        self.is_junk = self.can_remove()
+        self.should_rename: bool = self.can_rename()
+        self.is_junk: bool = self.can_remove()
+        self.subtitle_filename: Optional[str] = clean_subtitle(self.cleaned_name)
 
     def can_rename(self) -> bool:
         if self.original_name in BLACK_LIST:
@@ -182,13 +197,3 @@ class Filename(FileMaster):
                 return True
             else:
                 return check_delete_file(self.parent_dir.original_name, self.original_name)
-
-    # def clean_subtitle(self) -> str:
-    #     ext = self.extension.lower()
-    #     filename = self.cleaned_name
-    #     if ext in SUBTITLE_EXTENSIONS:
-    #         filename_txt, self.extension = os.path.splitext(filename)
-    #
-    #         self.subtitle_file = f"{titlecase_filename} {set_year or ''} – {self.extension or ''}"
-
-
