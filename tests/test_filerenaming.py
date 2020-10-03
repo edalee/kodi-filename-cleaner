@@ -30,8 +30,8 @@ class TestFileFolderCleaning(TestCase):
 
     @mock.patch('builtins.input', return_value=1)
     def test_clean_filename_with_file_year(self, mock_input):
-        dir_name = Directory(self.test_dir_name)
-        file_name = Filename(self.test_file_name, dir_name)
+        directory = Directory(self.test_dir_name)
+        file_name = Filename(self.test_file_name, directory)
 
         expected_name = "Bob's Movie (2000).mov"
         expected_year = 2000
@@ -43,22 +43,22 @@ class TestFileFolderCleaning(TestCase):
 
     @mock.patch('builtins.input', return_value=2)
     def test_clean_filename_with_directory_year(self, mock_input):
-        dir_name = Directory(self.test_dir_name)
-        file_name = Filename(self.test_file_name, dir_name)
+        directory = Directory(self.test_dir_name)
+        file_name = Filename(self.test_file_name, directory)
 
         expected_name = "Bob's Movie (1990).mov"
         expected_year = 2000
         expected_extension = ".mov"
 
-        self.assertEqual(1990, dir_name.file_year)
+        self.assertEqual(1990, directory.file_year)
         self.assertEqual(expected_name, file_name.cleaned_name)
         self.assertEqual(expected_year, file_name.file_year)
         self.assertEqual(expected_extension, file_name.extension)
 
     @mock.patch('builtins.input', return_value=1992)
     def test_clean_filename_with_no_folder_year(self, mock_input):
-        dir_name = Directory("Bob's Folder ()")
-        file_name = Filename(self.test_file_name, dir_name)
+        directory = Directory("Bob's Folder ()")
+        file_name = Filename(self.test_file_name, directory)
 
         expected_folder_name = "Bob's Folder (1992)"
         expected_folder_year = None
@@ -72,9 +72,9 @@ class TestFileFolderCleaning(TestCase):
         self.assertEqual(expected_file_year, file_name.file_year)
         self.assertEqual(expected_file_extension, file_name.extension)
 
-        self.assertEqual(expected_folder_name, dir_name.cleaned_name)
-        self.assertEqual(expected_folder_year, dir_name.file_year)
-        self.assertEqual(expected_folder_extension, dir_name.extension)
+        self.assertEqual(expected_folder_name, directory.cleaned_name)
+        self.assertEqual(expected_folder_year, directory.file_year)
+        self.assertEqual(expected_folder_extension, directory.extension)
 
 
 class TestFileState(TestCase):
