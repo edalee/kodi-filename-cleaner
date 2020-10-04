@@ -81,19 +81,6 @@ def delete_file(path: Union[str, bytes, os.PathLike]) -> None:
         print(e)
 
 
-def clean_subtitle(filename: str) -> Optional[str]:
-    filename_txt, extension = os.path.splitext(filename)
-
-    if extension.lower() in SUBTITLE_EXTENSIONS:
-        language_identifier = check_for_language(filename_txt)
-        if language_identifier:
-            filename_txt = filename_txt.lower().replace(language_identifier, '')
-            filename_txt = remove_additional_spacing(filename_txt).strip()
-            filename_txt = string.capwords(filename_txt, ' ')
-        return f"{filename_txt} – {language_identifier or ''}{extension or ''}"
-    else:
-        None
-
 
 class FileMaster:
     def __init__(self, original_name: str) -> None:
@@ -166,7 +153,7 @@ class Filename(FileMaster):
         super().__init__(original_name)
         self.should_rename: bool = self.can_rename()
         self.is_junk: bool = self.can_remove()
-        self.subtitle_filename: Optional[str] = clean_subtitle(self.cleaned_name)
+        self.subtitle_filename: Optional[str] = self.clean_subtitle()
 
     def can_rename(self) -> bool:
         if self.original_name in BLACK_LIST:
@@ -197,3 +184,16 @@ class Filename(FileMaster):
                 return True
             else:
                 return check_delete_file(self.parent_dir.original_name, self.original_name)
+
+    def clean_subtitle(self) -> Optional[str]:
+        filename_txt, extension = os.path.splitext(self.cleaned_name)
+
+        if extension.lower() in SUBTITLE_EXTENSIONS:
+            language_identifier = check_for_language(filename_txt)
+            if language_identifier:
+                filename_txt = filename_txt.lower().replace(language_identifier, '')
+                filename_txt = remove_additional_spacing(filename_txt).strip()
+                filename_txt = string.capwords(filename_txt, ' ')
+            return f"{filename_txt} – {language_identifier or ''}{extension or ''}"
+        else:
+            return None

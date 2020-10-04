@@ -1,14 +1,8 @@
-from typing import List
+from typing import List, Dict
 from unittest import TestCase, mock
 
 from constants import LANGUAGES_JSON
 from file_tools import Directory, Filename, get_languages
-
-
-def build_subtitle_test_list() -> List[str]:
-    languages = get_languages(LANGUAGES_JSON)
-    flatten = lambda l: [item for sublist in l for item in sublist.values()]
-    return flatten(languages)
 
 
 class TestFileFolderCleaning(TestCase):
@@ -78,6 +72,14 @@ class TestFileFolderCleaning(TestCase):
 
 
 class TestFileState(TestCase):
+
+    @staticmethod
+    def build_subtitle_test_list() -> List[str]:
+        languages = get_languages(LANGUAGES_JSON)
+        # flatten = lambda l: [item for sublist in l for item in sublist.values()]
+         # return flatten(languages)
+        return [item for sublist in languages for item in sublist.values()]
+
     def setUp(self) -> None:
         self.not_allowed_files: List[str] = [
             "john smith.txt",
@@ -130,7 +132,7 @@ class TestFileState(TestCase):
         double_check_file_data = Filename(self.test_subtitle_file_ext[0], directory)
         self.assertEqual('Logans Run (1980) – eng.sub', double_check_file_data.subtitle_filename)
 
-        for country_id in build_subtitle_test_list():
+        for country_id in self.build_subtitle_test_list():
             country_file = f"logan Run 2018 - {country_id}.srt"
             sub_file_name = Filename(country_file, directory)
             self.assertTrue(sub_file_name.subtitle_filename)
