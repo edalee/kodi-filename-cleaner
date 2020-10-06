@@ -80,16 +80,6 @@
       "Name": "Bihari languages"
    },
    {
-      "alpha-2": "bh",
-      "alpha-3": "bih",
-      "Name": "Bihari languages"
-   },
-   {
-      "alpha-2": "bi",
-      "alpha-3": "bis",
-      "Name": "Bislama"
-   },
-   {
       "alpha-2": "bi",
       "alpha-3": "bis",
       "Name": "Bislama"
@@ -118,11 +108,6 @@
       "alpha-2": "bs",
       "alpha-3": "bos",
       "Name": "Bosnian"
-   },
-   {
-      "alpha-2": "ca",
-      "alpha-3": "cat",
-      "Name": "Catalan; Valencian"
    },
    {
       "alpha-2": "ce",
@@ -190,11 +175,6 @@
       "Name": "English"
    },
    {
-      "alpha-2": "eo",
-      "alpha-3": "epo",
-      "Name": "Esperanto"
-   },
-   {
       "alpha-2": "es",
       "alpha-3": "spa",
       "Name": "Spanish"
@@ -250,11 +230,6 @@
       "Name": "Irish"
    },
    {
-      "alpha-2": "gd",
-      "alpha-3": "gla",
-      "Name": "Gaelic"
-   },
-   {
       "alpha-2": "gl",
       "alpha-3": "glg",
       "Name": "Galician"
@@ -268,11 +243,6 @@
       "alpha-2": "gu",
       "alpha-3": "guj",
       "Name": "Gujarati"
-   },
-   {
-      "alpha-2": "gv",
-      "alpha-3": "glv",
-      "Name": "Manx"
    },
    {
       "alpha-2": "ha",
@@ -307,7 +277,7 @@
    {
       "alpha-2": "ht",
       "alpha-3": "hat",
-      "Name": "Haitian; Haitian Creole"
+      "Name": "Haitian"
    },
    {
       "alpha-2": "hu",
@@ -325,19 +295,9 @@
       "Name": "Herero"
    },
    {
-      "alpha-2": "ia",
-      "alpha-3": "ina",
-      "Name": "Interlingua"
-   },
-   {
       "alpha-2": "id",
       "alpha-3": "ind",
       "Name": "Indonesian"
-   },
-   {
-      "alpha-2": "ie",
-      "alpha-3": "ile",
-      "Name": "Interlingue; Occidental"
    },
    {
       "alpha-2": "ig",
@@ -666,12 +626,12 @@
    },
    {
       "alpha-2": "rn",
-      "alpha-3": "run",
+      "alpha-3": "",
       "Name": "Rundi"
    },
    {
       "alpha-2": "ro",
-      "alpha-3": "rum",
+      "alpha-3": "",
       "Name": "Romanian; Moldavian; Moldovan"
    },
    {
@@ -711,7 +671,7 @@
    },
    {
       "alpha-2": "si",
-      "alpha-3": "sin",
+      "alpha-3": "",
       "Name": "Sinhala; Sinhalese"
    },
    {
@@ -761,7 +721,7 @@
    },
    {
       "alpha-2": "su",
-      "alpha-3": "sun",
+      "alpha-3": "",
       "Name": "Sundanese"
    },
    {
@@ -816,7 +776,7 @@
    },
    {
       "alpha-2": "to",
-      "alpha-3": "ton",
+      "alpha-3": "",
       "Name": "Tonga"
    },
    {
