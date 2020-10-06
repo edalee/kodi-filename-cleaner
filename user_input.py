@@ -1,18 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from typing import Optional
-
-
-def get_show_input(name: str) -> Optional[str]:
-    while True:
-        try:
-            episode = str(input(f'Add series and episode "{name}" (eg: S01E02) or c to skip : '))
-            if episode.upper().startswith('S') and episode.upper()[3] == 'E':
-                return episode.upper()
-            if episode.lower() == 'c':
-                return None
-        except ValueError:
-            print("The input was not a valid series and episode")
+from typing import Optional, List
 
 
 def get_year_input(name: str) -> Optional[int]:
@@ -62,3 +50,32 @@ def check_delete_file(folder: str, filename: str) -> bool:
         else:
             print("sorry didn't get that")
 
+
+# def get_series_input(name: str) -> List[str]:
+#     while True:
+#         try:
+#             series = str(input(f'Add series (eg: S01, for "{name}" or c to skip : '))
+#             if series.lower().startswith('s'):
+#                 return [series.upper()]
+#             if series.lower() == 'c':
+#                 return []
+#         except ValueError:
+#             print("The input was not a valid series")
+
+
+def get_show_input(name: str, series: bool = False) -> List[str]:
+    while True:
+        try:
+            if series:
+                _input = str(input(f'Add series and episode "{name}" (eg: S01E02) or c to skip : '))
+            else:
+                _input = str(input(f'Add series (eg: S01, for "{name}" or c to skip : '))
+
+            if len(_input) == 3 and _input.lower().startswith('s') or \
+                    len(_input) == 6 and _input.upper().startswith('S') and _input.upper()[3] == 'E':
+                return [_input.upper()]
+
+            if _input.lower() == 'c':
+                return ['']
+        except ValueError:
+            print("The input was not a valid series and episode")
