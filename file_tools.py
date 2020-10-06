@@ -5,7 +5,7 @@ import os
 import re
 import string
 from os import PathLike
-from typing import List, Optional, Union, Dict, Tuple
+from typing import List, Optional, Union, Dict
 
 from constants import CODINGS, TORRENT_DATA, SUBTITLE_EXTENSIONS, BLACK_LIST, FILE_TYPES, EXT_TO_KEEP, LANGUAGES_JSON
 from user_input import choose_year, get_year_input, check_delete_file, get_show_input
@@ -120,7 +120,8 @@ def parse_series_episode(name: str, is_file: bool) -> str:
 
     if formatted_series_episodes:
         formatted_series_episodes.sort(reverse=True)
-        uppercase_series_info = ''.join([x.upper() for x in formatted_series_episodes])
+
+    uppercase_series_info: str = ''.join([x.upper() for x in formatted_series_episodes])
 
     return uppercase_series_info
 
@@ -273,4 +274,3 @@ class SeriesMaster(FileMaster):
         file_name = f"{removed_series_info_txt} {self.defined_year or ''} {self.series_info or ''}"
 
         return remove_additional_spacing(file_name).strip()
-
