@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import logging
 from typing import Optional, List
+
+logger = logging.getLogger(__name__)
 
 
 def get_year_input(name: str) -> Optional[int]:
@@ -17,6 +20,9 @@ def get_year_input(name: str) -> Optional[int]:
                 raise ValueError
         except ValueError:
             print("The input was not a valid integer")
+        except Exception as err:
+            logger.error(f'Failed year input', extra=dict(error=err))
+            raise
 
 
 def choose_year(name: str, file_year: Optional[int], folder_year: str) -> int:
@@ -36,6 +42,9 @@ def choose_year(name: str, file_year: Optional[int], folder_year: str) -> int:
             return year
         except ValueError:
             print("The input was not a valid integer")
+        except Exception as err:
+            logger.error(f'Failed choose year input', extra=dict(error=err))
+            raise
 
 
 def check_delete_file(folder: str, filename: str) -> bool:
@@ -49,18 +58,6 @@ def check_delete_file(folder: str, filename: str) -> bool:
             return False
         else:
             print("sorry didn't get that")
-
-
-# def get_series_input(name: str) -> List[str]:
-#     while True:
-#         try:
-#             series = str(input(f'Add series (eg: S01, for "{name}" or c to skip : '))
-#             if series.lower().startswith('s'):
-#                 return [series.upper()]
-#             if series.lower() == 'c':
-#                 return []
-#         except ValueError:
-#             print("The input was not a valid series")
 
 
 def get_show_input(name: str, series: bool = False) -> List[str]:
@@ -79,3 +76,6 @@ def get_show_input(name: str, series: bool = False) -> List[str]:
                 return ['']
         except ValueError:
             print("The input was not a valid series and episode")
+        except Exception as err:
+            logger.error(f'Failed show input', extra = dict(error=err))
+            raise
