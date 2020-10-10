@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import argparse
 import logging
 from typing import Optional, List
 
@@ -25,7 +26,7 @@ def get_year_input(name: str) -> Optional[int]:
             raise
 
 
-def choose_year(name: str, file_year: Optional[int], folder_year: str) -> int:
+def choose_year(name: str, file_year: int, folder_year: int) -> int:
     while True:
         try:
             choice = int(
@@ -47,11 +48,11 @@ def choose_year(name: str, file_year: Optional[int], folder_year: str) -> int:
             raise
 
 
-def check_delete_file(folder: str, filename: str) -> bool:
+def check_delete_file(directory: str, filename: str) -> bool:
     yes_answers = ['yes', 'y', 'yeah', 'yep']
     no_answers = ['no', 'n', 'na', 'non', 'nope']
     while True:
-        response = str(input(f'Delete this file (y or n): "{folder}/{filename}"?  ')).strip()
+        response = str(input(f'Delete this file (y or n): "{directory}/{filename}"?  ')).strip()
         if response.lower() in yes_answers:
             return True
         elif response.lower() in no_answers:
@@ -77,5 +78,16 @@ def get_show_input(name: str, series: bool = False) -> List[str]:
         except ValueError:
             print("The input was not a valid series and episode")
         except Exception as err:
-            logger.error(f'Failed show input', extra = dict(error=err))
+            logger.error(f'Failed show input', extra=dict(error=err))
             raise
+
+
+def string_to_bool(_value):
+    if isinstance(_value, bool):
+        return _value
+    if _value.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif _value.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
