@@ -4,21 +4,13 @@ import logging
 import os
 import re
 import string
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from settings.constants import SUBTITLE_EXTENSIONS, BLACK_LIST, FILE_TYPES, EXT_TO_KEEP
-from utils.file_tools import FileTools
+from utils import name_tools
 from utils.user_input import choose_year, get_year_input, check_delete_file, get_show_input
 
 logger = logging.getLogger(__name__)
-
-
-def delete_file(path: Union[str, bytes, os.PathLike]) -> None:
-    logger.info(f"Deleting file: {path} ", extra=dict(file_name=path))
-    try:
-        os.remove(path)
-    except Exception as e:
-        logger.error(e)
 
 
 class FileMaster:
@@ -40,13 +32,13 @@ class FileMaster:
         else:
             filename_txt = name
 
-        self.file_year: Optional[int] = FileTools.extract_year(filename_txt)
+        self.file_year: Optional[int] = name_tools.extract_year(filename_txt)
         self.defined_year = self.set_file_year_for_string()
-        cleaned_filename = FileTools.clean_name(filename_txt, self.file_year)
+        cleaned_filename = name_tools.clean_name(filename_txt, self.file_year)
         title_case_filename = string.capwords(cleaned_filename, ' ')
         apostrophe_fixed = title_case_filename.replace("'S", "'s")
 
-        return FileTools.remove_additional_spacing(apostrophe_fixed).strip()
+        return name_tools.remove_additional_spacing(apostrophe_fixed).strip()
 
     def set_file_year_for_string(self) -> int:
         if self.parent_dir and self.parent_dir.file_year:
@@ -73,7 +65,7 @@ class FileMaster:
     @staticmethod
     def clean_and_reformat_name(_filename_txt: str, item_to_remove: str):
         clean_filename = _filename_txt.lower().replace(item_to_remove, '')
-        stripped_filename = FileTools.remove_additional_spacing(clean_filename).strip()
+        stripped_filename = name_tools.remove_additional_spacing(clean_filename).strip()
         return string.capwords(stripped_filename, ' ')
 
 
@@ -98,7 +90,7 @@ class Directory(FileMaster):
 
     def __str__(self):
         file_name = f"{self.cleaned_name} ({self.defined_year or ''})"
-        return FileTools.remove_additional_spacing(file_name).strip()
+        return name_tools.remove_additional_spacing(file_name).strip()
 
 
 class Filename(FileMaster):
@@ -144,7 +136,7 @@ class Filename(FileMaster):
         filename_txt = self.cleaned_name
         extension = self.extension.lower()
         if extension in SUBTITLE_EXTENSIONS:
-            language_identifier = FileTools.check_for_language(filename_txt)
+            language_identifier = name_tools.check_for_language(filename_txt)
             if language_identifier:
                 filename_txt = self.clean_and_reformat_name(filename_txt, language_identifier.lower())
                 self.cleaned_name = filename_txt
@@ -154,7 +146,7 @@ class Filename(FileMaster):
         file_name = (
             f"{self.cleaned_name} ({self.defined_year or ''}){self.subtitle_language or ''}{self.extension or ''}"
         )
-        return FileTools.remove_additional_spacing(file_name).strip()
+        return name_tools.remove_additional_spacing(file_name).strip()
 
 
 class SeriesMaster(FileMaster):
@@ -217,7 +209,7 @@ class SeriesMaster(FileMaster):
     def clean_series(self) -> str:
         series_info: str = self.parse_series_episode()
         removed_series_info_txt = self.clean_and_reformat_name(self.cleaned_name, series_info.lower())
-        self.cleaned_name = FileTools.remove_additional_spacing(removed_series_info_txt).strip()
+        self.cleaned_name = name_tools.remove_additional_spacing(removed_series_info_txt).strip()
         return series_info.upper()
 
 
@@ -228,7 +220,7 @@ class SeriesDirectory(SeriesMaster, Directory):
 
     def __str__(self):
         file_name = f"{self.cleaned_name} ({self.defined_year or ''}) {self.series_info.upper() or ''}"
-        return FileTools.remove_additional_spacing(file_name).strip()
+        return name_tools.remove_additional_spacing(file_name).strip()
 
 
 class SeriesFilename(SeriesMaster, Filename):
@@ -241,4 +233,4 @@ class SeriesFilename(SeriesMaster, Filename):
             f"{self.cleaned_name} ({self.defined_year or ''}) {self.series_info.upper() or ''}"
             f"{self.subtitle_language or ''}{self.extension or ''}"
         )
-        return FileTools.remove_additional_spacing(file_name).strip()
+        return name_tools.remove_additional_spacing(file_name).strip()
