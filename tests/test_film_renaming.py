@@ -3,13 +3,14 @@ from typing import List
 from unittest import TestCase, mock
 
 from settings.constants import LANGUAGES_JSON
-from models import Directory, Filename, get_languages
+from models import Directory, Filename
+from utils.utils import read_file_json
 
 
 class TestFilmFilenameCleaning(TestCase):
     @staticmethod
     def build_subtitle_test_list() -> List[str]:
-        languages = get_languages(LANGUAGES_JSON)
+        languages = read_file_json(LANGUAGES_JSON)
         # flatten = lambda l: [item for sublist in l for item in sublist.values()]
         # return flatten(languages)
         return [item for sublist in languages for item in sublist.values()]
