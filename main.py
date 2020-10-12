@@ -18,7 +18,6 @@ def file_action_interface(
         file_name: str,
         path: str
 ) -> int:
-
     if file.should_rename:
         file.is_updated = FileActions.change_file_name(
             source=os.path.join(path, file_name),
@@ -26,15 +25,21 @@ def file_action_interface(
         )
 
     if file.is_removable:
-        FileActions.ask_user_before_delete(directory=path, filename=file_name)
-
-    if file.is_updated:
-        return 1
-    else:
-        logger.error(f"Did not rename file: {file.original_name}", extra=dict(file.original_name))
+        is_directory: bool = False if file.parent_dir else True
+        delete = FileActions.ask_user_before_delete(path=path, filename=file_name, is_directory=is_directory)
+        logger.error(f"{type(file).__name__}: {file.original_name} deleted attempt = {delete}")
         return 0
 
-
+    if file.is_updated and file.should_rename:
+        return 1
+    elif not file.is_updated and file.should_rename:
+        logger.error(f"{type(file).__name__} was not Updated: {file.original_name}",
+                     extra=dict(file_name=file.original_name, new_name=file.__str__()))
+        return 0
+    else:
+        logger.error(f"Won't change {type(file).__name__}: {file.original_name}",
+                     extra=dict(file_name=file.original_name))
+        return 0
 
 
 def parse_args(argv=None) -> Tuple[str, str]:
@@ -52,6 +57,7 @@ def parse_args(argv=None) -> Tuple[str, str]:
         "--tv_show",
         help="If TV show specify a boolean flag: yes/no, y/n, 1/0",
         type=string_to_bool,
+        nargs="?",
         const=True,
         default=False
     )
@@ -60,6 +66,7 @@ def parse_args(argv=None) -> Tuple[str, str]:
 
 
 def rename_files(file_path: str, _is_tv_show: bool) -> Tuple[int, int]:
+    run = 0
     file_count = 0
     dir_count = 0
     if _is_tv_show:
@@ -82,7 +89,8 @@ def rename_files(file_path: str, _is_tv_show: bool) -> Tuple[int, int]:
                 file_count += file_action_interface(file=file, file_name=name, path=root)
 
             else:
-                file = models.Filename(name, root)
+                dir = models.Directory(root.split('/')[-1])
+                file = models.Filename(name, dir)
                 file_count += file_action_interface(file=file, file_name=name, path=root)
 
             logger.info(f"Filename: {name}")
@@ -99,15 +107,20 @@ def rename_files(file_path: str, _is_tv_show: bool) -> Tuple[int, int]:
     return dir_count, file_count
 
 
-def main(path: str, is_tv: bool = False) -> None:
-    argv: List[str, bool] = [path, is_tv]
-    file_path, episodes = parse_args(argv)
+def test_entry_point() -> None:
+    test_path: str = "/Volumes/complete/Stage/"
+    test_is_tv_show: bool = False
+    argv: List[str, bool] = ['-f', test_path, '-t', test_is_tv_show]
+    main(argv)
+
+
+def main(argv=None) -> None:
+    file_path, is_tv_show = parse_args(argv)
     dir_count, file_count = rename_files(file_path, is_tv_show)
     logger.info(f"directories renamed count: {dir_count}")
     logger.info(f"files renamed count: {file_count}")
 
 
 if __name__ == "__main__":
-    my_path: str = "/Volumes/complete/Stage/"
-    is_tv_show: bool = False
-    main(my_path, is_tv_show)
+    test_entry_point()
+    # main(sys.argv[1:])

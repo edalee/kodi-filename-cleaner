@@ -79,7 +79,10 @@ class Directory(FileMaster):
         if self.original_name in BLACK_LIST:
             return False
         else:
-            return True
+            if self.original_name != self.__str__():
+                return True
+            else:
+                return False
 
     def can_remove(self) -> bool:
         if self.original_name[0] == '.':
@@ -98,9 +101,9 @@ class Filename(FileMaster):
         self.parent_dir = parent_dir
         self.set_is_filename()
         super().__init__(original_name)
-        self.should_rename: bool = self.can_rename()
-        self.is_removable: bool = self.can_remove()
         self.subtitle_language: str = self.clean_subtitle()
+        self.is_removable: bool = self.can_remove()
+        self.should_rename: bool = self.can_rename()
 
     def can_rename(self) -> bool:
         if self.original_name in BLACK_LIST:
@@ -110,8 +113,11 @@ class Filename(FileMaster):
             is_rar_sequence = re.search(r'(.*?)((part\[\d+\])?\.r[0-9]+)', self.extension)
             if is_rar_sequence:
                 return False
-            else:
-                return True
+
+        if self.original_name != self.__str__():
+            return True
+        else:
+            return False
 
     def can_remove(self) -> bool:
         ext = self.extension.lower()
@@ -120,7 +126,7 @@ class Filename(FileMaster):
         if self.original_name[0] == '.':
             return True
 
-        if ext.lower() == 'jpg' and filename == 'WWW.YIFY - TORRENTS.COM' or 'WWW.YTS.RE':
+        if ext.lower() == '.jpg' and filename == 'WWW.YIFY - TORRENTS.COM' or filename == 'WWW.YTS.RE':
             return True
 
         if self.original_name.lower() == 'sample.mp4':
@@ -131,6 +137,8 @@ class Filename(FileMaster):
                 return True
             else:
                 return check_delete_file(self.parent_dir.original_name, self.original_name)
+        else:
+            return False
 
     def clean_subtitle(self) -> Optional[str]:
         filename_txt = self.cleaned_name

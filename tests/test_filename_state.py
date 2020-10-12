@@ -35,6 +35,13 @@ class TestFileState(unittest.TestCase):
             rar_file = Filename(rar, directory)
             self.assertFalse(rar_file.should_rename)
 
+    @unittest.mock.patch('builtins.input', return_value=0)
+    def test_should_not_rename_file(self, mock_input):
+        directory = Directory("Bob's Folder (1980)")
+        file = Filename("Bob's Film (1980).avi", directory)
+
+        self.assertFalse(file.should_rename)
+
 
 class TestFolderState(unittest.TestCase):
 
@@ -56,4 +63,10 @@ class TestFolderState(unittest.TestCase):
     @unittest.mock.patch('builtins.input', return_value=0)
     def test_should_rename_folder(self, mock_input):
         directory = Directory(self.dvd_folder)
+        self.assertFalse(directory.should_rename)
+
+    @unittest.mock.patch('builtins.input', return_value=0)
+    def test_should_not_rename_folder(self, mock_input):
+        directory = Directory("Bob's Folder (1980)")
+
         self.assertFalse(directory.should_rename)
