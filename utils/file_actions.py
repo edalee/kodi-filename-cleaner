@@ -73,6 +73,14 @@ class FileActions:
         except Exception as err:
             logger.error(f"Failed to delete file: {path} ", extra=dict(file_name=path))
 
+    @staticmethod
+    def delete_directory(path: Union[str, bytes, os.PathLike]) -> None:
+        logger.info(f"Deleting folder: {path} ", extra=dict(file_name=path))
+        try:
+            os.rmdir(path)
+        except Exception as err:
+            logger.error(f"Failed to delete folder: {path} ", extra=dict(file_name=path))
+
     @classmethod
     def ask_user_before_delete(cls, directory: Union[str, bytes, os.PathLike], filename: str):
         if check_delete_file(directory.__str__(), filename):
