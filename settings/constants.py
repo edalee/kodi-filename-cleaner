@@ -18,3 +18,4 @@ SUBTITLE_EXTENSIONS = ['.sub', '.srt', ".ssa", ".ass", ".usf", ".ssf"]
 TORRENT_DATA = os.path.join(root, "names_to_clean.txt")
 CODINGS = os.path.join(root, "audio_video_information.txt")
 LANGUAGES_JSON = os.path.join(root, 'languages.json')
+DELETE_FILES = os.path.join(root, "delete_files.txt")

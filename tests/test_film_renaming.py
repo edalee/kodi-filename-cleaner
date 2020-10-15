@@ -32,7 +32,7 @@ class TestFilmFilenameCleaning(TestCase):
         self.test_non_sub_file: str = "Logans Run.txt"
         self.test_dirty_sub_file: str = "Logan's Run Afg Btn CM8 EVO Fgt Fum Ftp  Fov- nor.sub"
 
-    @mock.patch('builtins.input', return_value=1)
+    @mock.patch('builtins.input', side_effect=[1, "no"])
     def test_clean_filename_with_file_year(self, mock_input):
         directory = Directory(self.test_dir_name)
         file_name = Filename(self.test_file_name, directory)
@@ -47,7 +47,7 @@ class TestFilmFilenameCleaning(TestCase):
         self.assertEqual(expected_extension, file_name.extension)
         self.assertEqual(expected_string, file_name.__str__())
 
-    @mock.patch('builtins.input', return_value=1992)
+    @mock.patch('builtins.input', side_effect=[1992, "no"])
     def test_clean_filename_with_no_folder_year(self, mock_input):
         directory = Directory("Bob's Folder ()")
         file_name = Filename(self.test_file_name, directory)
@@ -76,7 +76,7 @@ class TestFilmFilenameCleaning(TestCase):
         self.assertEqual(expected_file_set_year, file_name.defined_year)
         self.assertEqual(expected_file_string, file_name.__str__())
 
-    @mock.patch('builtins.input', return_value=1992)
+    @mock.patch('builtins.input', side_effect=[1992, 1992, "no"])
     def test_clean_filename_with_no_folder_or_file_year(self, mock_input):
         directory = Directory("Bob's Folder")
         file_name = Filename("Bob's Movie.mov", directory)

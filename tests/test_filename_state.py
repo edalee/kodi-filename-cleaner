@@ -19,28 +19,28 @@ class TestFileState(unittest.TestCase):
 
         self.dvd_folder: str = "VIDEO_TS"
 
-    @unittest.mock.patch('builtins.input', return_value=1983)
+    @unittest.mock.patch('builtins.input', return_value=2)
     def test_removable_file(self, mock_input):
-        directory = Directory("Bob's Folder ()")
+        directory = Directory("Bob's Folder (1980)")
 
         for filename in self.not_allowed_files:
             file = Filename(filename, directory)
             self.assertTrue(file.is_removable)
 
-    @unittest.mock.patch('builtins.input', return_value=0)
+    @unittest.mock.patch('builtins.input', return_value="no")
     def test_should_rename_files(self, mock_input):
-        directory = Directory("Bob's Folder ()")
+        directory = Directory("Bob's Folder (1990)")
 
         for rar in self.rars:
             rar_file = Filename(rar, directory)
-            self.assertFalse(rar_file.should_rename)
+            self.assertFalse(rar_file.is_renamable)
 
     @unittest.mock.patch('builtins.input', return_value=0)
     def test_should_not_rename_file(self, mock_input):
         directory = Directory("Bob's Folder (1980)")
         file = Filename("Bob's Film (1980).avi", directory)
 
-        self.assertFalse(file.should_rename)
+        self.assertFalse(file.is_renamable)
 
 
 class TestFolderState(unittest.TestCase):
@@ -63,10 +63,10 @@ class TestFolderState(unittest.TestCase):
     @unittest.mock.patch('builtins.input', return_value=0)
     def test_should_rename_folder(self, mock_input):
         directory = Directory(self.dvd_folder)
-        self.assertFalse(directory.should_rename)
+        self.assertFalse(directory.is_renamable)
 
     @unittest.mock.patch('builtins.input', return_value=0)
     def test_should_not_rename_folder(self, mock_input):
         directory = Directory("Bob's Folder (1980)")
 
-        self.assertFalse(directory.should_rename)
+        self.assertFalse(directory.is_renamable)

@@ -6,8 +6,10 @@ import re
 import string
 from typing import List, Optional
 
+from settings import constants
 from settings.constants import SUBTITLE_EXTENSIONS, BLACK_LIST, FILE_TYPES, EXT_TO_KEEP
 from utils import name_tools
+from utils.name_tools import Cleaner
 from utils.user_input import choose_year, get_year_input, check_delete_file, get_show_input
 
 logger = logging.getLogger(__name__)
@@ -69,97 +71,12 @@ class FileMaster:
         return string.capwords(stripped_filename, ' ')
 
 
-class Directory(FileMaster):
-    def __init__(self, original_name: str) -> None:
-        super().__init__(original_name)
-        self.should_rename = self.can_rename()
-        self.is_removable = self.can_remove()
-
-    def can_rename(self) -> bool:
-        if self.original_name in BLACK_LIST:
-            return False
-        else:
-            if self.original_name != self.__str__():
-                return True
-            else:
-                return False
-
-    def can_remove(self) -> bool:
-        if self.original_name[0] == '.':
-            return True
-
-        if self.original_name.lower() == 'extras':
-            return True
-
-    def __str__(self):
-        file_name = f"{self.cleaned_name} ({self.defined_year or ''})"
-        return name_tools.remove_additional_spacing(file_name).strip()
-
-
-class Filename(FileMaster):
-    def __init__(self, original_name: str, parent_dir: Directory) -> None:
-        self.parent_dir = parent_dir
-        self.set_is_filename()
-        super().__init__(original_name)
-        self.subtitle_language: str = self.clean_subtitle()
-        self.is_removable: bool = self.can_remove()
-        self.should_rename: bool = self.can_rename()
-
-    def can_rename(self) -> bool:
-        if self.original_name in BLACK_LIST:
-            return False
-
-        if self.extension:
-            is_rar_sequence = re.search(r'(.*?)((part\[\d+\])?\.r[0-9]+)', self.extension)
-            if is_rar_sequence:
-                return False
-
-        if self.original_name != self.__str__():
-            return True
-        else:
-            return False
-
-    def can_remove(self) -> bool:
-        ext = self.extension.lower()
-        filename = self.original_name
-
-        if self.original_name[0] == '.':
-            return True
-
-        if ext.lower() == '.jpg' and filename == 'WWW.YIFY - TORRENTS.COM' or filename == 'WWW.YTS.RE':
-            return True
-
-        if self.original_name.lower() == 'sample.mp4':
-            return True
-
-        if ext not in FILE_TYPES and ext not in EXT_TO_KEEP:
-            if ext == '.txt' or ext == '.rtf':
-                return True
-            else:
-                return check_delete_file(self.parent_dir.original_name, self.original_name)
-        else:
-            return False
-
-    def clean_subtitle(self) -> Optional[str]:
-        filename_txt = self.cleaned_name
-        extension = self.extension.lower()
-        if extension in SUBTITLE_EXTENSIONS:
-            language_identifier = name_tools.check_for_language(filename_txt)
-            if language_identifier:
-                filename_txt = self.clean_and_reformat_name(filename_txt, language_identifier.lower())
-                self.cleaned_name = filename_txt
-                return f" – {language_identifier}"
-
-    def __str__(self):
-        file_name = (
-            f"{self.cleaned_name} ({self.defined_year or ''}){self.subtitle_language or ''}{self.extension or ''}"
-        )
-        return name_tools.remove_additional_spacing(file_name).strip()
-
-
 class SeriesMaster(FileMaster):
-    def __init__(self) -> None:
-        self.series_info: str = self.clean_series()
+
+    def __init__(self, original_name: str) -> None:
+        super(SeriesMaster, self).__init__(original_name)
+        self.series_info = self.parse_series_episode()
+        self.update_cleaned_name()
 
     def parse_series_episode(self) -> str:
         formatted_series_episodes: List[str] = []
@@ -214,27 +131,132 @@ class SeriesMaster(FileMaster):
 
         return uppercase_series_info
 
-    def clean_series(self) -> str:
+    def update_cleaned_name(self) -> None:
         series_info: str = self.parse_series_episode()
         removed_series_info_txt = self.clean_and_reformat_name(self.cleaned_name, series_info.lower())
         self.cleaned_name = name_tools.remove_additional_spacing(removed_series_info_txt).strip()
+
+    def format_series(self) -> str:
+        series_info: str = self.parsed_series
         return series_info.upper()
 
 
-class SeriesDirectory(SeriesMaster, Directory):
+class DirectoryState(FileMaster):
+
     def __init__(self, original_name: str) -> None:
-        Directory.__init__(self, original_name)
-        SeriesMaster.__init__(self)
+        super(DirectoryState, self).__init__(original_name)
+
+    def can_rename(self) -> bool:
+        if self.original_name in BLACK_LIST:
+            return False
+        else:
+            if self.original_name != self.__str__():
+                return True
+            else:
+                return False
+
+    def can_remove(self) -> bool:
+        if self.original_name[0] == '.':
+            return True
+
+        if self.original_name.lower() == 'extras':
+            return True
+
+
+class Directory(DirectoryState):
+    def __init__(self, original_name: str) -> None:
+        super().__init__(original_name)
+        self.is_removable = self.can_remove()
+        self.is_renamable: bool = self.can_rename()
 
     def __str__(self):
-        file_name = f"{self.cleaned_name} ({self.defined_year or ''}) {self.series_info.upper() or ''}"
+        file_name = f"{self.cleaned_name} ({self.defined_year or ''})"
         return name_tools.remove_additional_spacing(file_name).strip()
 
 
-class SeriesFilename(SeriesMaster, Filename):
+class SeriesDirectory(DirectoryState, SeriesMaster):
+    def __init__(self, original_name: str) -> None:
+        super(SeriesDirectory, self).__init__(original_name)
+        self.is_removable = self.can_remove()
+        self.is_renamable: bool = self.can_rename()
+
+    def __str__(self) -> str:
+        file_name = f"{self.cleaned_name} ({self.defined_year or ''}) {self.series_info or ''}"
+        return name_tools.remove_additional_spacing(file_name).strip()
+
+
+class FilenameState(FileMaster):
     def __init__(self, original_name: str, parent_dir: Directory) -> None:
-        Filename.__init__(self, original_name, parent_dir)
-        SeriesMaster.__init__(self)
+        self.parent_dir = parent_dir
+        self.set_is_filename()
+        super(FilenameState, self).__init__(original_name)
+        self.subtitle_language: str = self.clean_subtitle()
+
+    def can_rename(self) -> bool:
+        if self.original_name in BLACK_LIST:
+            return False
+
+        if self.extension:
+            is_rar_sequence = re.search(r'(.*?)((part\[\d+\])?\.r[0-9]+)', self.extension)
+            if is_rar_sequence:
+                return False
+
+        if self.original_name != self.__str__():
+            return True
+        else:
+            return False
+
+    def can_remove(self) -> bool:
+        ext = self.extension.lower()
+        filename = self.original_name
+        txt_file_reader = Cleaner(constants.DELETE_FILES)
+
+        if self.original_name[0] == '.':
+            return True
+
+        if ext.lower() == '.jpg' and txt_file_reader.check_name(filename):
+            return True
+
+        if self.original_name.lower() == 'sample.mp4':
+            return True
+
+        if ext not in FILE_TYPES and ext not in EXT_TO_KEEP:
+            if ext == '.txt' or ext == '.rtf':
+                return True
+            else:
+                return check_delete_file(self.parent_dir.original_name, self.original_name)
+        else:
+            return False
+
+    def clean_subtitle(self) -> Optional[str]:
+        filename_txt = self.cleaned_name
+        extension = self.extension.lower()
+        if extension in SUBTITLE_EXTENSIONS:
+            language_identifier = name_tools.check_for_language(filename_txt)
+            if language_identifier:
+                filename_txt = self.clean_and_reformat_name(filename_txt, language_identifier.lower())
+                self.cleaned_name = filename_txt
+                return f" – {language_identifier}"
+
+
+class Filename(FilenameState):
+    def __init__(self, original_name: str, parent_dir: Directory) -> None:
+        super().__init__(original_name, parent_dir)
+        self.is_removable: bool = self.can_remove()
+        self.is_renamable: bool = self.can_rename()
+
+    def __str__(self):
+        file_name = (
+            f"{self.cleaned_name} ({self.defined_year or ''}){self.subtitle_language or ''}{self.extension or ''}"
+        )
+        return name_tools.remove_additional_spacing(file_name).strip()
+
+
+class SeriesFilename(FilenameState, SeriesMaster):
+    def __init__(self, original_name: str, parent_dir: Directory) -> None:
+        super(SeriesFilename, self).__init__(original_name, parent_dir)
+        self.is_removable: bool = self.can_remove()
+        self.is_renamable: bool = self.can_rename()
 
     def __str__(self):
         file_name = (

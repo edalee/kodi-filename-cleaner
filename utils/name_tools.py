@@ -1,9 +1,10 @@
 import logging
 import re
 import string
+from contextlib import contextmanager
 from typing import Optional
 
-from settings.constants import LANGUAGES_JSON, CODINGS, TORRENT_DATA
+from settings import constants
 from utils.utils import read_file_json
 
 
@@ -12,6 +13,35 @@ class FileException(Exception):
 
 
 logger = logging.getLogger(__name__)
+
+
+class Cleaner(object):
+    def __init__(self, filename):
+        self.file_name = filename
+
+    @contextmanager
+    def open_file(self):
+        try:
+            file = open(self.file_name, 'r')
+            lines = [line.replace('\n', '') for line in file]
+            yield lines
+        finally:
+            file.close()
+
+    def clean_name(self, name: str):
+        name = name
+        with self.open_file() as file:
+            for line in file:
+                name = name.lower().replace(line.lower(), '')
+        return name
+
+    def check_name(self, name: str):
+        with self.open_file() as file:
+            for line in file:
+                if line.lower() in name.lower():
+                    return True
+            else:
+                return False
 
 
 def extract_year(title) -> Optional[int]:
@@ -23,7 +53,7 @@ def extract_year(title) -> Optional[int]:
 
 def check_for_language(name: str) -> str:
     try:
-        languages = read_file_json(LANGUAGES_JSON)
+        languages = read_file_json(constants.LANGUAGES_JSON)
     except FileException as err:
         logger.error(f'Fail to read language json', extra=dict(error=err))
         raise
@@ -56,14 +86,11 @@ def clean_punctuation(name: str) -> str:
 
 def clean_name(name: str, year: int) -> str:
     name = name.replace(str(year), '')
-    with open(CODINGS) as file:
-        for line in file:
-            line = line.replace('\n', '')
-            name = name.lower().replace(line.lower(), '')
-    with open(TORRENT_DATA) as file:
-        for line in file:
-            line = line.replace('\n', '')
-            name = name.lower().replace(line.lower(), '')
+
+    cleaner = Cleaner(filename=constants.CODINGS)
+    name = cleaner.clean_name(name)
+    cleaner = Cleaner(filename=constants.TORRENT_DATA)
+    name = cleaner.clean_name(name)
     name = clean_punctuation(name)
     name = remove_additional_spacing(name).strip()
     name = string.capwords(name, ' ')
