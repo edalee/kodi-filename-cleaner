@@ -8,7 +8,7 @@ from utils.utils import split_name, check_int
 class TestHelperFunctions(unittest.TestCase):
     def test_split_name(self):
         expected = ["Sam", "and", "Dave"]
-        result = split_name("Sam/and/Dave", '/')
+        result = split_name("Sam/and/Dave", "/")
         self.assertEqual(expected, result)
 
     def test_check_int(self):
@@ -20,9 +20,11 @@ class TestHelperFunctions(unittest.TestCase):
 
     def test_txt_file_to_list(self):
         txt_file_reader = Cleaner(constants.DELETE_FILES)
-        has_delete_name = txt_file_reader.check_name("Bob's WWW.YIFY - TORRENTS.COM Movie")
+        has_delete_name = txt_file_reader.check_name(
+            "Bob's WWW.YIFY - TORRENTS.COM Movie"
+        )
         self.assertTrue(has_delete_name)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

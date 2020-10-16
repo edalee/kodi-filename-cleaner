@@ -16,11 +16,16 @@ class TestFilmFilenameCleaning(TestCase):
         return [item for sublist in languages for item in sublist.values()]
 
     def setUp(self) -> None:
-        self.test_file_name: str = "2000 Bob's Movie HDCAM 1280P 1080 Hevc Psa -Hive Pdtv Megusta Mkv.Com.mov"
-        self.test_dir_name: str = "1990 Bob's folder X0R Hc nf -cg cg cc -Hive JYK Juggs Pdtv Megusta mfcorrea Mkv.Com"
+        self.test_file_name: str = (
+            "2000 Bob's Movie HDCAM 1280P 1080 Hevc Psa -Hive Pdtv Megusta Mkv.Com.mov"
+        )
+        self.test_dir_name: str = (
+            "1990 Bob's folder X0R Hc nf -cg cg cc"
+            "-Hive JYK Juggs Pdtv Megusta mfcorrea Mkv.Com"
+        )
         self.test_subtitle_file_ext: List[str] = [
             "Logans Run (1980)(eng).sub",
-            'Logans Run (1980)(eng).srt',
+            "Logans Run (1980)(eng).srt",
             "Logans Run (1980)(eng).ssa",
             "Logans Run (1980)(nor).ass",
             "Logans Run (1980)(vie).ass",
@@ -30,9 +35,11 @@ class TestFilmFilenameCleaning(TestCase):
             "Logans Run (1980)(xh).sub",
         ]
         self.test_non_sub_file: str = "Logans Run.txt"
-        self.test_dirty_sub_file: str = "Logan's Run Afg Btn CM8 EVO Fgt Fum Ftp  Fov- nor.sub"
+        self.test_dirty_sub_file: str = (
+            "Logan's Run Afg Btn CM8 EVO Fgt Fum Ftp  Fov- nor.sub"
+        )
 
-    @mock.patch('builtins.input', side_effect=[1, "no"])
+    @mock.patch("builtins.input", side_effect=[1, "no"])
     def test_clean_filename_with_file_year(self, mock_input):
         directory = Directory(self.test_dir_name)
         file_name = Filename(self.test_file_name, directory)
@@ -47,7 +54,7 @@ class TestFilmFilenameCleaning(TestCase):
         self.assertEqual(expected_extension, file_name.extension)
         self.assertEqual(expected_string, file_name.__str__())
 
-    @mock.patch('builtins.input', side_effect=[1992, "no"])
+    @mock.patch("builtins.input", side_effect=[1992, "no"])
     def test_clean_filename_with_no_folder_year(self, mock_input):
         directory = Directory("Bob's Folder ()")
         file_name = Filename(self.test_file_name, directory)
@@ -76,7 +83,7 @@ class TestFilmFilenameCleaning(TestCase):
         self.assertEqual(expected_file_set_year, file_name.defined_year)
         self.assertEqual(expected_file_string, file_name.__str__())
 
-    @mock.patch('builtins.input', side_effect=[1992, 1992, "no"])
+    @mock.patch("builtins.input", side_effect=[1992, 1992, "no"])
     def test_clean_filename_with_no_folder_or_file_year(self, mock_input):
         directory = Directory("Bob's Folder")
         file_name = Filename("Bob's Movie.mov", directory)
@@ -105,7 +112,7 @@ class TestFilmFilenameCleaning(TestCase):
         self.assertEqual(expected_file_set_year, file_name.defined_year)
         self.assertEqual(expected_file_string, file_name.__str__())
 
-    @mock.patch('builtins.input', return_value=1)
+    @mock.patch("builtins.input", return_value=1)
     def test_subtitle_rename_files(self, mocked_choose_year):
         directory = Directory("Logan's Run - 1980")
 
@@ -114,8 +121,8 @@ class TestFilmFilenameCleaning(TestCase):
             self.assertTrue(sub_file_name.__str__())
 
         double_check_file_data = Filename(self.test_subtitle_file_ext[0], directory)
-        self.assertEqual(' – eng', double_check_file_data.subtitle_language)
-        self.assertEqual('Logans Run', double_check_file_data.cleaned_name)
+        self.assertEqual(" – eng", double_check_file_data.subtitle_language)
+        self.assertEqual("Logans Run", double_check_file_data.cleaned_name)
 
         for country_id in self.build_subtitle_test_list():
             country_file = f"logan Run 2018 - {country_id}.srt"
@@ -130,16 +137,18 @@ class TestFilmFilenameCleaning(TestCase):
 
 
 class TestFilmFolderCleaning(TestCase):
-
     def setUp(self) -> None:
-        self.test_dir_name: str = "1990 Bob's folder X0R Hc nf -cg cg cc -Hive JYK Juggs Pdtv Megusta mfcorrea Mkv.Com"
+        self.test_dir_name: str = (
+            "1990 Bob's folder X0R Hc nf -cg cg cc"
+            "-Hive JYK Juggs Pdtv Megusta mfcorrea Mkv.Com"
+        )
 
     def test_clean_directory_name(self):
         dir_name = Directory(self.test_dir_name)
 
         expected_clean_name = "Bob's Folder"
         expected_year = 1990
-        expected_extension = ''
+        expected_extension = ""
         expected_str = f"{expected_clean_name} ({expected_year})"
 
         self.assertEqual(expected_clean_name, dir_name.cleaned_name)
@@ -148,5 +157,5 @@ class TestFilmFolderCleaning(TestCase):
         self.assertEqual(expected_str, dir_name.__str__())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

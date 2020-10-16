@@ -4,7 +4,7 @@
 import argparse
 import os
 
-my_path = '/Volumes/archived/Films/1970- Two Mules for Sister Sara.mp4'
+my_path = "/Volumes/archived/Films/1970- Two Mules for Sister Sara.mp4"
 
 
 def parse_args():
@@ -27,8 +27,8 @@ def create_new_folder(path):
     drive, file_name = os.path.split(path)
     ext = os.path.splitext(path)[1]
 
-    new_name = file_name.replace(ext, '')
-    new_name = new_name.replace("\'", "'")
+    new_name = file_name.replace(ext, "")
+    new_name = new_name.replace("'", "'")
     new_path = os.path.join(drive, new_name)
     try:
         os.mkdir(new_path)
@@ -59,5 +59,5 @@ def main():
     print(f"Total Created: {total_created}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -10,7 +10,12 @@ from settings import constants
 from settings.constants import SUBTITLE_EXTENSIONS, BLACK_LIST, FILE_TYPES, EXT_TO_KEEP
 from utils import name_tools
 from utils.name_tools import Cleaner
-from utils.user_input import choose_year, get_year_input, check_delete_file, get_show_input
+from utils.user_input import (
+    choose_year,
+    get_year_input,
+    check_delete_file,
+    get_show_input,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +28,7 @@ class FileMaster:
     is_removable: bool = False
     is_updated: bool = False
     is_filename: bool = False
-    extension: str = ''
+    extension: str = ""
     file_year: Optional[int] = None
     defined_year: Optional[int] = None
     parent_dir = None
@@ -37,7 +42,7 @@ class FileMaster:
         self.file_year: Optional[int] = name_tools.extract_year(filename_txt)
         self.defined_year = self.set_file_year_for_string()
         cleaned_filename = name_tools.clean_name(filename_txt, self.file_year)
-        title_case_filename = string.capwords(cleaned_filename, ' ')
+        title_case_filename = string.capwords(cleaned_filename, " ")
         apostrophe_fixed = title_case_filename.replace("'S", "'s")
 
         return name_tools.remove_additional_spacing(apostrophe_fixed).strip()
@@ -50,7 +55,7 @@ class FileMaster:
                 chosen_year = choose_year(
                     name=self.original_name,
                     file_year=self.file_year,
-                    folder_year=self.parent_dir.file_year
+                    folder_year=self.parent_dir.file_year,
                 )
                 return chosen_year
             else:
@@ -66,13 +71,12 @@ class FileMaster:
 
     @staticmethod
     def clean_and_reformat_name(_filename_txt: str, item_to_remove: str):
-        clean_filename = _filename_txt.lower().replace(item_to_remove, '')
+        clean_filename = _filename_txt.lower().replace(item_to_remove, "")
         stripped_filename = name_tools.remove_additional_spacing(clean_filename).strip()
-        return string.capwords(stripped_filename, ' ')
+        return string.capwords(stripped_filename, " ")
 
 
 class SeriesMaster(FileMaster):
-
     def __init__(self, original_name: str) -> None:
         super(SeriesMaster, self).__init__(original_name)
         self.series_info = self.parse_series_episode()
@@ -84,9 +88,9 @@ class SeriesMaster(FileMaster):
         is_file = self.is_filename
 
         reg = re.compile(
-            r'''[a-zA-Z]\d{1,2} | \bseason\s?\d+\b | \bseries\s?\d+\b | 
-              \bepisode\s?\d+\b | \d{1,2}[x|X]\d{1,2} | [x|X]\d{1,2}''',
-            flags=re.I | re.X
+            r"""[a-zA-Z]\d{1,2} | \bseason\s?\d+\b | \bseries\s?\d+\b |
+              \bepisode\s?\d+\b | \d{1,2}[x|X]\d{1,2} | [x|X]\d{1,2}""",
+            flags=re.I | re.X,
         )
         original_find = re.findall(reg, name)
         if not original_find:
@@ -95,31 +99,36 @@ class SeriesMaster(FileMaster):
         for find in original_find:
             find_lower: str = find.lower()
 
-            if 'season' in find_lower or 'series' in find_lower:
-                number = list(map(int, re.findall(r'\d+', find_lower)))
+            if "season" in find_lower or "series" in find_lower:
+                number = list(map(int, re.findall(r"\d+", find_lower)))
                 series = f"s{number[0]:02d}"
                 if series not in formatted_series_episodes:
                     formatted_series_episodes.append(series)
                     continue
-            if 'episode' in find_lower or 'x' in find_lower:
-                number = list(map(int, re.findall(r'\d+', find_lower)))
+            if "episode" in find_lower or "x" in find_lower:
+                number = list(map(int, re.findall(r"\d+", find_lower)))
                 episode = f"e{number[0]:02d}"
                 if episode not in formatted_series_episodes:
                     formatted_series_episodes.append(episode)
                     continue
-            if 'x' in find_lower and find_lower[0].isdigit():
+            if "x" in find_lower and find_lower[0].isdigit():
                 series = f"s{find_lower}"
                 if series not in formatted_series_episodes:
                     formatted_series_episodes.append(series)
                     continue
-            if 'x' in find_lower and not find_lower[0].isalpha:
+            if "x" in find_lower and not find_lower[0].isalpha:
                 series = f"s{find_lower}"
                 if series not in formatted_series_episodes:
                     formatted_series_episodes.append(series)
                     continue
-            if 's' in find_lower and find_lower not in formatted_series_episodes or 'e' in find_lower and find_lower not in formatted_series_episodes:
+            if (
+                "s" in find_lower
+                and find_lower not in formatted_series_episodes
+                or "e" in find_lower
+                and find_lower not in formatted_series_episodes
+            ):
                 if len(find_lower) == 2:
-                    series_episodes = find_lower.replace('s', 's0').replace('e', 'e0')
+                    series_episodes = find_lower.replace("s", "s0").replace("e", "e0")
                 else:
                     series_episodes = find_lower
                 formatted_series_episodes.append(series_episodes)
@@ -127,22 +136,23 @@ class SeriesMaster(FileMaster):
         if formatted_series_episodes:
             formatted_series_episodes.sort(reverse=True)
 
-        uppercase_series_info: str = ''.join([x.upper() for x in formatted_series_episodes])
+        uppercase_series_info: str = "".join(
+            [x.upper() for x in formatted_series_episodes]
+        )
 
         return uppercase_series_info
 
     def update_cleaned_name(self) -> None:
         series_info: str = self.parse_series_episode()
-        removed_series_info_txt = self.clean_and_reformat_name(self.cleaned_name, series_info.lower())
-        self.cleaned_name = name_tools.remove_additional_spacing(removed_series_info_txt).strip()
-
-    def format_series(self) -> str:
-        series_info: str = self.parsed_series
-        return series_info.upper()
+        removed_series_info_txt = self.clean_and_reformat_name(
+            self.cleaned_name, series_info.lower()
+        )
+        self.cleaned_name = name_tools.remove_additional_spacing(
+            removed_series_info_txt
+        ).strip()
 
 
 class DirectoryState(FileMaster):
-
     def __init__(self, original_name: str) -> None:
         super(DirectoryState, self).__init__(original_name)
 
@@ -156,10 +166,10 @@ class DirectoryState(FileMaster):
                 return False
 
     def can_remove(self) -> bool:
-        if self.original_name[0] == '.':
+        if self.original_name[0] == ".":
             return True
 
-        if self.original_name.lower() == 'extras':
+        if self.original_name.lower() == "extras":
             return True
 
 
@@ -181,7 +191,9 @@ class SeriesDirectory(DirectoryState, SeriesMaster):
         self.is_renamable: bool = self.can_rename()
 
     def __str__(self) -> str:
-        file_name = f"{self.cleaned_name} ({self.defined_year or ''}) {self.series_info or ''}"
+        file_name = (
+            f"{self.cleaned_name} ({self.defined_year or ''}) {self.series_info or ''}"
+        )
         return name_tools.remove_additional_spacing(file_name).strip()
 
 
@@ -197,7 +209,9 @@ class FilenameState(FileMaster):
             return False
 
         if self.extension:
-            is_rar_sequence = re.search(r'(.*?)((part\[\d+\])?\.r[0-9]+)', self.extension)
+            is_rar_sequence = re.search(
+                r"(.*?)((part\[\d+\])?\.r[0-9]+)", self.extension
+            )
             if is_rar_sequence:
                 return False
 
@@ -211,20 +225,22 @@ class FilenameState(FileMaster):
         filename = self.original_name
         txt_file_reader = Cleaner(constants.DELETE_FILES)
 
-        if self.original_name[0] == '.':
+        if self.original_name[0] == ".":
             return True
 
-        if ext.lower() == '.jpg' and txt_file_reader.check_name(filename):
+        if ext.lower() == ".jpg" and txt_file_reader.check_name(filename):
             return True
 
-        if self.original_name.lower() == 'sample.mp4':
+        if self.original_name.lower() == "sample.mp4":
             return True
 
         if ext not in FILE_TYPES and ext not in EXT_TO_KEEP:
-            if ext == '.txt' or ext == '.rtf':
+            if ext == ".txt" or ext == ".rtf":
                 return True
             else:
-                return check_delete_file(self.parent_dir.original_name, self.original_name)
+                return check_delete_file(
+                    self.parent_dir.original_name, self.original_name
+                )
         else:
             return False
 
@@ -234,7 +250,9 @@ class FilenameState(FileMaster):
         if extension in SUBTITLE_EXTENSIONS:
             language_identifier = name_tools.check_for_language(filename_txt)
             if language_identifier:
-                filename_txt = self.clean_and_reformat_name(filename_txt, language_identifier.lower())
+                filename_txt = self.clean_and_reformat_name(
+                    filename_txt, language_identifier.lower()
+                )
                 self.cleaned_name = filename_txt
                 return f" – {language_identifier}"
 
@@ -247,7 +265,8 @@ class Filename(FilenameState):
 
     def __str__(self):
         file_name = (
-            f"{self.cleaned_name} ({self.defined_year or ''}){self.subtitle_language or ''}{self.extension or ''}"
+            f"{self.cleaned_name} ({self.defined_year or ''})"
+            f"{self.subtitle_language or ''}{self.extension or ''}"
         )
         return name_tools.remove_additional_spacing(file_name).strip()
 

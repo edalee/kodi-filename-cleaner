@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import json
 from os import PathLike
-from typing import List, Union, Dict
+from typing import List, Union, Any
 
 
 class UnsplittableError(Exception):
@@ -20,6 +20,6 @@ def check_int(year) -> bool:
     return isinstance(year, int)
 
 
-def read_file_json(file_path: Union[str, bytes, PathLike]) -> List[Dict]:
+def read_file_json(file_path: Union[str, bytes, PathLike]) -> Any:
     with open(file_path) as f:
         return json.load(f)
