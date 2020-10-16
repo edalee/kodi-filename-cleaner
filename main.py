@@ -18,7 +18,7 @@ def file_action_interface(
         file_name: str,
         path: str
 ) -> int:
-    if file.should_rename:
+    if file.is_renamable:
         file.is_updated = FileActions.change_file_name(
             source=os.path.join(path, file_name),
             destination=os.path.join(path, file.__str__())
@@ -30,9 +30,9 @@ def file_action_interface(
         logger.error(f"{type(file).__name__}: {file.original_name} deleted attempt = {delete}")
         return 0
 
-    if file.is_updated and file.should_rename:
+    if file.is_updated and file.is_renamable:
         return 1
-    elif not file.is_updated and file.should_rename:
+    elif not file.is_updated and file.is_renamable:
         logger.error(f"{type(file).__name__} was not Updated: {file.original_name}",
                      extra=dict(file_name=file.original_name, new_name=file.__str__()))
         return 0
