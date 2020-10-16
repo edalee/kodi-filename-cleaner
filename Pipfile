@@ -7,10 +7,9 @@ verify_ssl = true
 mypy = "*"
 pytest = "*"
 flake8 = "*"
-
+black = "*"
 
 [packages]
-
 
 [requires]
 python_version = "3.7"
