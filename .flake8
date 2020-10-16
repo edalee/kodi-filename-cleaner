@@ -1,0 +1,5 @@
+[flake8]
+ignore=E203, W503
+application-import-names=ingestion
+import-order-style=pycharm
+max-line-length = 100
