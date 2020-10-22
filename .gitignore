@@ -1,6 +1,4 @@
-<<<<<<< HEAD
-led / optimized / DLL files
-=======
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -146,4 +144,6 @@ cython_debug/
 # IDE specifics
 .idea/
 
+# OS SPECIFIC
+.DS_Store
 
