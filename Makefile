@@ -1,5 +1,5 @@
 init:
-	pipenv install --ignore-pipfile
+	pipenv install --ignore-pipfile --dev
 
 test:
 	pipenv run pytest -vv
