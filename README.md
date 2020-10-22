@@ -1,5 +1,5 @@
 # KODI Media File Cleaner
-========
+
 
 Cleans file and folder names of unwanted characters and media formats specified in the filename; ready for use on your Kodi setup.
 
